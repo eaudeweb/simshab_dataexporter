@@ -49,13 +49,32 @@ def xmlDescAttributeValue(fieldValue, descRelation):
         "SELECT {0}'{1}'".format(descRelation, fieldValue)).first()[0])
 
 
+def xmlCalculateField(record, fieldName):
+    if fieldName == "species_name":
+        try:
+            return str(
+                engine.execute(
+                    "select species_name from data_species_check_list where "
+                    "member_state='{0}' and natura_2000_code='{1}'".format(
+                        record.country, record.speciescode)).first()[0])
+        except TypeError as ex:
+            if "'NoneType' object has no attribute" in ex.message:
+                """
+                Is happend when select has no records. Should return ""
+                """
+                return ""
+            raise ex
+
+    return ""
+
+
 def convertRecordToXML(record, elementName, tableName, tableTagItems):
     xml_nodes = []
     for item in tableTagItems:
         try:
             fieldValue = getattr(record, item.field_name)
         except AttributeError:
-            fieldValue = item.xml_tag
+            fieldValue = xmlCalculateField(record, item.field_name)
 
         descRelation = item.xml_desc_relation
         additonalAttributesValue = xmlAdditionalAttributeValue(
