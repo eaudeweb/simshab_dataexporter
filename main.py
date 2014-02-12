@@ -85,7 +85,7 @@ def convertRecordToXML(record, elementName, tableName, tableTagItems):
         el = etree.Element(item.field_name,
                            desc=descValue if descValue is not None else "")
         el.attrib.update(additonalAttributesValue)
-        el.text = str(fieldValue)
+        el.text = str(fieldValue) if fieldValue is not None else ""
         #logger.debug("{0}".format(etree.tostring(el, pretty_print=True)))
         xml_nodes.append(el)
     return xml_nodes
