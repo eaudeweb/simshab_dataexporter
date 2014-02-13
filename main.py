@@ -68,27 +68,36 @@ def xmlCalculateField(record, fieldName):
     return ""
 
 
-def convertRecordToXML(record, elementName, tableName, tableTagItems):
-    xml_nodes = []
-    for item in tableTagItems:
+def convertRecordToXML(root_node, record, tableName, tableTagItems):
+    previousTagGroup = None
+
+    for idx in range(len(tableTagItems)):
+        item = tableTagItems[idx]
+        if item.xml_tag_section != previousTagGroup:
+            if previousTagGroup is not None:
+                return
+            if item.xml_tag_section is not None:
+                new_root_node = etree.Element(item.xml_tag_section)
+                convertRecordToXML(new_root_node, record, tableName,
+                                   tableTagItems[idx + 1:])
+                root_node.append(new_root_node)
+
         try:
             fieldValue = getattr(record, item.field_name)
         except AttributeError:
             fieldValue = xmlCalculateField(record, item.field_name)
 
-        descRelation = item.xml_desc_relation
-        additonalAttributesValue = xmlAdditionalAttributeValue(
+        additionalAttributesValue = xmlAdditionalAttributeValue(
             tableName, item.field_name, record)
-        if descRelation is not None:
-            descValue = xmlDescAttributeValue(fieldValue, descRelation)
+        if item.xml_desc_relation is not None:
+            descValue = xmlDescAttributeValue(fieldValue,
+                                              item.xml_desc_relation)
 
         el = etree.Element(item.field_name,
                            desc=descValue if descValue is not None else "")
-        el.attrib.update(additonalAttributesValue)
+        el.attrib.update(additionalAttributesValue)
         el.text = str(fieldValue) if fieldValue is not None else ""
-        #logger.debug("{0}".format(etree.tostring(el, pretty_print=True)))
-        xml_nodes.append(el)
-    return xml_nodes
+        root_node.append(el)
 
 if __name__ == "__main__":
     logger.info("Just started !")
@@ -111,10 +120,8 @@ if __name__ == "__main__":
             xsi_noNamespaceSchemaLocation=configLoader.xml_schema_species)
         for specie in speciesRs:
             specie_tag = etree.Element(configLoader.xml_report_tag_species)
-            xml_nodes = convertRecordToXML(specie, "species", "data_species",
+            xml_nodes = convertRecordToXML(specie_tag, specie, "data_species",
                                            tableTagItems)
-            for xml_node in xml_nodes:
-                specie_tag.append(xml_node)
             export_xml.append(specie_tag)
 
         fileNameExport = generateFilename(
