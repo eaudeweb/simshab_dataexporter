@@ -45,6 +45,8 @@ def xmlAdditionalAttributeValue(tableName, elementName, record):
 
 
 def xmlDescAttributeValue(fieldValue, descRelation):
+    if descRelation is None:
+        return None
     try:
         return str(engine.execute(
             "SELECT {0}'{1}'".format(descRelation, fieldValue)).first()[0])
@@ -140,13 +142,8 @@ def convertRecordToXML(rootNode, record, tableName, tableTagItems):
             value = getValueFromGeneric(record, item.primary_key_field)
 
             convertLinkTableToXML(
-                rootNode,
-                item.foreign_key_field,
-                value,
-                item.field_name,
-                item.xml_tag,
-                item.xml_tag,
-                item.table_filter)
+                rootNode, item.foreign_key_field, value, item.field_name,
+                item.xml_tag, item.xml_tag, item.table_filter)
         else:
             try:
                 fieldValue = getValueFromGeneric(record, item.field_name)
@@ -155,10 +152,9 @@ def convertRecordToXML(rootNode, record, tableName, tableTagItems):
 
             additionalAttributesValue = xmlAdditionalAttributeValue(
                 tableName, item.field_name, record)
-            descValue = None
-            if item.xml_desc_relation is not None:
-                descValue = xmlDescAttributeValue(fieldValue,
-                                                  item.xml_desc_relation)
+
+            descValue = xmlDescAttributeValue(fieldValue,
+                                              item.xml_desc_relation)
 
             el = etree.Element(item.field_name,
                                desc=descValue if descValue is not None else "")
