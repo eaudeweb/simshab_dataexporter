@@ -57,7 +57,6 @@ def xmlDescAttributeValue(fieldValue, descRelation):
         raise ex
 
 
-
 def xmlCalculateField(record, fieldName):
     if fieldName == "species_name":
         try:
@@ -78,9 +77,12 @@ def xmlCalculateField(record, fieldName):
 
 
 def getTagItems(tableName):
+    """
+    generate validate fields
+    """
     return session.query(ValidateFields).filter(
-            ValidateFields.table_name == tableName).order_by(
-            ValidateFields.table_name, ValidateFields.xml_order).all()
+        ValidateFields.table_name == tableName).order_by(
+        ValidateFields.table_name, ValidateFields.xml_order).all()
 
 
 def convertLinkTableToXML(rootNode, foreign_key, value, table_name,
@@ -100,6 +102,13 @@ def convertLinkTableToXML(rootNode, foreign_key, value, table_name,
                            table_name, tableTagItems)
         rootNode.append(newRootNode)
 
+
+def getValueFromGeneric(record, item):
+    if type(record) is dict:
+        value = record[item]
+    else:
+        value = getattr(record, item)
+    return value
 
 
 def convertRecordToXML(rootNode, record, tableName, tableTagItems):
@@ -128,10 +137,7 @@ def convertRecordToXML(rootNode, record, tableName, tableTagItems):
         #        item.field_name == "data_pressures_threats_pol":
             #import ipdb;ipdb.set_trace()
         if item.is_related_table:
-            if type(record) is dict:
-                value = record[item.primary_key_field]
-            else:
-                value = getattr(record, item.primary_key_field)
+            value = getValueFromGeneric(record, item.primary_key_field)
 
             convertLinkTableToXML(
                 rootNode,
@@ -143,10 +149,7 @@ def convertRecordToXML(rootNode, record, tableName, tableTagItems):
                 item.table_filter)
         else:
             try:
-                if type(record) is dict:
-                    fieldValue = record[item.field_name]
-                else:
-                    fieldValue = getattr(record, item.field_name)
+                fieldValue = getValueFromGeneric(record, item.field_name)
             except (AttributeError, KeyError):
                 fieldValue = xmlCalculateField(record, item.field_name)
 
