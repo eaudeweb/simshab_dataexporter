@@ -25,23 +25,30 @@ class ValidateFields(Base):
     xml_desc_relation = Column(String)
     xml_import = Column('import', Integer)
     xml_order = Column(Integer)
+    is_related_table = Column(Integer)
+    foreign_key_field = Column(String)
+    primary_key_field = Column(String)
 
     def __repr__(self):
         return "<ValidateFields(id: {0}, table_name: {1},field_name: {2},"\
             "table_filter: {3}, label: {4}, field_type: {5}, mask: {6}, "\
             "optional: {7}, rule: {8}, xml_tag, {9}, xml_tag_section{10}>"\
             "xml_desc_relation: {11}, xml_import: {12}, xml_order: {13}"\
+            "is_related_table: {14}, foreign_key_field: {15},"\
+            "primary_key_field: {16}"\
             "".format(
                 self.id, self.table_name, self.field_name, self.table_filter,
                 self.label, self.field_type, self.mask, self.optional,
                 self.rule, self.xml_tag, self.xml_tag_section,
-                self.xml_desc_relation, self.xml_import, self.xml_order)
+                self.xml_desc_relation, self.xml_import, self.xml_order,
+                self.is_related_table, self.foreign_key_field,
+                self.primary_key_field)
 
 
 class DataSpecies(Base):
     __tablename__ = u'data_species'
 
-    id = Column("objectid", Integer, primary_key=True)
+    species_id = Column("objectid", Integer, primary_key=True)
     country = Column(String)
     speciescode = Column(Integer)
     alternative_speciesname = Column(String)
@@ -73,7 +80,7 @@ class DataSpecies(Base):
             "sys_date_imported: {15}, sys_creator_id: {16}"\
             "sys_modifier_id: {17}, export: {18}, import_id: {19}"\
             "".format(
-                self.id,
+                self.species_id,
                 self.country,
                 self.speciescode,
                 self.alternative_speciesname,
