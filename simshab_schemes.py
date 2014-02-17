@@ -32,8 +32,8 @@ class ValidateFields(Base):
     def __repr__(self):
         return "<ValidateFields(id: {0}, table_name: {1},field_name: {2},"\
             "table_filter: {3}, label: {4}, field_type: {5}, mask: {6}, "\
-            "optional: {7}, rule: {8}, xml_tag, {9}, xml_tag_section{10}>"\
-            "xml_desc_relation: {11}, xml_import: {12}, xml_order: {13}"\
+            "optional: {7}, rule: {8}, xml_tag: {9}, xml_tag_section: {10}, "\
+            "xml_desc_relation: {11}, xml_import: {12}, xml_order: {13}, "\
             "is_related_table: {14}, foreign_key_field: {15},"\
             "primary_key_field: {16}"\
             "".format(

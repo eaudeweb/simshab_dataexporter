@@ -154,6 +154,7 @@ def convertRecordToXML(rootNode, record, tableName, tableTagItems):
             if previousTagGroup is not None:
                 return
             if item.xml_tag_section is not None:
+                previousTagGroup = item.xml_tag_section
                 newRootNode = etree.Element(item.xml_tag_section)
                 getSubnode(newRootNode, item, record, tableName)
                 rootNode.append(newRootNode)
@@ -183,6 +184,11 @@ if __name__ == "__main__":
         export_xml = etree.Element(
             configLoader.xml_root_tag_species,
             attrib={location_attribute: configLoader.xml_schema_species})
+        """
+        set the language
+        """
+        attr = export_xml.attrib
+        attr['{http://www.w3.org/XML/1998/namespace}lang'] = "en"
 
         for specie in speciesRs:
             specie_tag = etree.Element(configLoader.xml_report_tag_species)
