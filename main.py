@@ -46,7 +46,7 @@ def xmlAdditionalAttributeValue(tableName, elementName, record):
 
 def xmlDescAttributeValue(fieldValue, descRelation):
     if descRelation is None:
-        return None
+        return ""
     try:
         return str(engine.execute(
             "SELECT {0}'{1}'".format(descRelation, fieldValue)).first()[0])
@@ -106,11 +106,14 @@ def convertLinkTableToXML(rootNode, foreign_key, value, table_name,
 
 
 def getValueFromGeneric(record, item):
+    """Always return str
+    """
     if type(record) is dict:
         value = record[item]
     else:
         value = getattr(record, item)
-    return value
+
+    return str(value) if value is not None else ""
 
 
 def convertRecordToXML(rootNode, record, tableName, tableTagItems):
@@ -130,14 +133,33 @@ def convertRecordToXML(rootNode, record, tableName, tableTagItems):
                 return
             if item.xml_tag_section is not None:
                 newRootNode = etree.Element(item.xml_tag_section)
-                convertRecordToXML(newRootNode, record, tableName,
-                                   tableTagItems[idx + 1:])
+                if item.is_related_table:
+                    value = getValueFromGeneric(record, item.primary_key_field)
+
+                    convertLinkTableToXML(
+                        newRootNode, item.foreign_key_field, value,
+                        item.field_name, item.xml_tag, item.xml_tag,
+                        item.table_filter)
+                else:
+                    try:
+                        fieldValue = getValueFromGeneric(
+                            record, item.field_name)
+                    except (AttributeError, KeyError):
+                        fieldValue = xmlCalculateField(record, item.field_name)
+
+                    additionalAttributesValue = xmlAdditionalAttributeValue(
+                        tableName, item.field_name, record)
+
+                    descValue = xmlDescAttributeValue(
+                        fieldValue, item.xml_desc_relation)
+
+                    el = etree.Element(item.field_name, desc=descValue)
+                    el.attrib.update(additionalAttributesValue)
+                    el.text = fieldValue
+                    newRootNode.append(el)
                 rootNode.append(newRootNode)
 
-        #print "*************", item.table_name, "$->", item.field_name
-        #if item.table_name == "data_pressures_threats" and \
-        #        item.field_name == "data_pressures_threats_pol":
-            #import ipdb;ipdb.set_trace()
+
         if item.is_related_table:
             value = getValueFromGeneric(record, item.primary_key_field)
 
@@ -161,6 +183,7 @@ def convertRecordToXML(rootNode, record, tableName, tableTagItems):
             el.attrib.update(additionalAttributesValue)
             el.text = str(fieldValue) if fieldValue is not None else ""
             rootNode.append(el)
+
 
 if __name__ == "__main__":
     logger.info("Just started !")
