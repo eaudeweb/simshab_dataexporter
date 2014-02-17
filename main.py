@@ -115,6 +115,30 @@ def getValueFromGeneric(record, item):
 
     return str(value) if value is not None else ""
 
+def getSubnode(root, item, record, tableName):
+    if item.is_related_table:
+        value = getValueFromGeneric(record, item.primary_key_field)
+
+        convertLinkTableToXML(
+            root, item.foreign_key_field, value,item.field_name, item.xml_tag,
+            item.xml_tag, item.table_filter)
+    else:
+        try:
+            fieldValue = getValueFromGeneric(record, item.field_name)
+        except (AttributeError, KeyError):
+            fieldValue = xmlCalculateField(record, item.field_name)
+
+        additionalAttributesValue = xmlAdditionalAttributeValue(
+            tableName, item.field_name, record)
+
+        descValue = xmlDescAttributeValue(fieldValue, item.xml_desc_relation)
+
+        el = etree.Element(item.field_name, desc=descValue)
+        el.attrib.update(additionalAttributesValue)
+        el.text = fieldValue
+        root.append(el)
+
+
 
 def convertRecordToXML(rootNode, record, tableName, tableTagItems):
     """
@@ -133,56 +157,10 @@ def convertRecordToXML(rootNode, record, tableName, tableTagItems):
                 return
             if item.xml_tag_section is not None:
                 newRootNode = etree.Element(item.xml_tag_section)
-                if item.is_related_table:
-                    value = getValueFromGeneric(record, item.primary_key_field)
-
-                    convertLinkTableToXML(
-                        newRootNode, item.foreign_key_field, value,
-                        item.field_name, item.xml_tag, item.xml_tag,
-                        item.table_filter)
-                else:
-                    try:
-                        fieldValue = getValueFromGeneric(
-                            record, item.field_name)
-                    except (AttributeError, KeyError):
-                        fieldValue = xmlCalculateField(record, item.field_name)
-
-                    additionalAttributesValue = xmlAdditionalAttributeValue(
-                        tableName, item.field_name, record)
-
-                    descValue = xmlDescAttributeValue(
-                        fieldValue, item.xml_desc_relation)
-
-                    el = etree.Element(item.field_name, desc=descValue)
-                    el.attrib.update(additionalAttributesValue)
-                    el.text = fieldValue
-                    newRootNode.append(el)
+                getSubnode(newRootNode, item, record, tableName)
                 rootNode.append(newRootNode)
 
-
-        if item.is_related_table:
-            value = getValueFromGeneric(record, item.primary_key_field)
-
-            convertLinkTableToXML(
-                rootNode, item.foreign_key_field, value, item.field_name,
-                item.xml_tag, item.xml_tag, item.table_filter)
-        else:
-            try:
-                fieldValue = getValueFromGeneric(record, item.field_name)
-            except (AttributeError, KeyError):
-                fieldValue = xmlCalculateField(record, item.field_name)
-
-            additionalAttributesValue = xmlAdditionalAttributeValue(
-                tableName, item.field_name, record)
-
-            descValue = xmlDescAttributeValue(fieldValue,
-                                              item.xml_desc_relation)
-
-            el = etree.Element(item.field_name,
-                               desc=descValue if descValue is not None else "")
-            el.attrib.update(additionalAttributesValue)
-            el.text = str(fieldValue) if fieldValue is not None else ""
-            rootNode.append(el)
+        getSubnode(rootNode,item, record, tableName)
 
 
 if __name__ == "__main__":
