@@ -38,7 +38,7 @@ def xmlAdditionalAttributeValue(tableName, elementName, record):
         return {"desc": "", "euniscode": ""}
     elif (tableName in ("data_habitats", "data_species", "data_greport")
             and elementName == "country"):
-        return {"isocode": '"{0}"'.format(
+        return {"isocode": "{0}".format(
             session.query(LuCountryCode).filter(
                 LuCountryCode.code == record.country).first().isocode)}
     return {}
@@ -92,8 +92,6 @@ def convertLinkTableToXML(rootNode, foreign_key, value, table_name,
     related_values = engine.execute(
         "select * from {0} where {1}={2}".format(
             table_name, foreign_key, value))
-    logger.debug("------select * from {0} where {1}={2}".format(
-        table_name, foreign_key, value))
 
     for related_value in related_values:
         newRootNode = etree.Element(groupElementName)
@@ -159,8 +157,8 @@ def convertRecordToXML(rootNode, record, tableName, tableTagItems):
                 newRootNode = etree.Element(item.xml_tag_section)
                 getSubnode(newRootNode, item, record, tableName)
                 rootNode.append(newRootNode)
-
-        getSubnode(rootNode,item, record, tableName)
+        else:
+            getSubnode(rootNode,item, record, tableName)
 
 
 if __name__ == "__main__":
@@ -174,13 +172,18 @@ if __name__ == "__main__":
     try:
         tableTagItems = getTagItems('data_species')
 
-        speciesRs = session.query(DataSpecies).filter(
-            DataSpecies.export == 1).all()
+        #DON'T FORGOT TO REPLACE .first() with .all()
+        speciesRs = (session.query(DataSpecies).filter(
+            DataSpecies.export == 1).first(),)
+
+
+        NS = 'http://www.w3.org/2001/XMLSchema-instance'
+        location_attribute = '{%s}noNameSpaceSchemaLocation' % NS
 
         export_xml = etree.Element(
             configLoader.xml_root_tag_species,
-            xml_lang=configLoader.xml_lang,
-            xsi_noNamespaceSchemaLocation=configLoader.xml_schema_species)
+            attrib={location_attribute: configLoader.xml_schema_species})
+
         for specie in speciesRs:
             specie_tag = etree.Element(configLoader.xml_report_tag_species)
             xml_nodes = convertRecordToXML(specie_tag, specie, "data_species",
@@ -190,7 +193,9 @@ if __name__ == "__main__":
         fileNameExport = generateFilename(
             args.xml_path, "RO", "_species_reports")
         with open(fileNameExport, "w") as xml_file:
-            xml_file.write(etree.tostring(export_xml, pretty_print=True))
+            xml_file.write(etree.tostring(export_xml, pretty_print=True,
+                                          xml_declaration=True,
+                                          encoding='UTF-16'))
         logger.info("Generated filename: {0} with success".format(
             fileNameExport))
 
