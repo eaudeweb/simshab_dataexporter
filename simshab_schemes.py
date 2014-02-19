@@ -143,3 +143,46 @@ class LuCountryCode(Base):
                    self.name,
                    self.order_
                )
+
+class DataHabitats(Base):
+    __tablename__ = u"data_habitats"
+
+    id = Column("objectid", Integer, primary_key=True)
+
+    country = Column(String)
+    habitatcode = Column(String)
+    distribution_map = Column(Integer)
+    distribution_method = Column(String)
+    distribution_date = Column(String)
+    additional_distribution_map = Column(Integer)
+    range_map = Column(Integer)
+    sys_date_created = Column(Date)
+    sys_date_modified = Column(Date)
+    sys_date_imported  = Column(Date)
+    sys_creator_id = Column(String)
+    sys_modifier_id = Column(String)
+    validated = Column(Integer)
+    validation_date = Column(Date)
+    export = Column(Integer)
+    import_id = Column(Integer)
+    globalid = Column(String)
+
+#    def __repr__(self):
+#        return "<DataHabitats(id: {0},
+#country: {1}
+#habitatcode: {2}
+#distribution_map {3}
+#distribution_method {4}
+#distribution_date {5}
+#additional_distribution_map
+#range_map
+#sys_date_created
+#sys_date_modified
+#sys_date_imported
+#sys_creator_id
+#sys_modifier_id
+#validated
+#validation_date
+#export
+#import_id
+#globalid

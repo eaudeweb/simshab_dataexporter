@@ -1,18 +1,18 @@
 from lxml import etree
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm import sessionmaker
-import argparse
-import datetime
+from argparse import ArgumentParser
 import logging
 import logging.config
-import os.path
 
 from configloader import configLoader
+from reportattributes import ReportAttributes
+from simshab_schemes import DataHabitats
 from simshab_schemes import DataSpecies
 from simshab_schemes import LuCountryCode
 from simshab_schemes import ValidateFields
 from simshab_schemes import engine
-
+from utils import generateFilename
 
 logger = logging.getLogger('ExportXML')
 logging.config.fileConfig('etc/log.conf', disable_existing_loggers=False)
@@ -20,16 +20,6 @@ logging.config.fileConfig('etc/log.conf', disable_existing_loggers=False)
 Session = sessionmaker(bind=engine)
 Session.configure(bind=engine)
 session = Session()
-
-
-def generateFilename(folderName, CountryCode, xmlFileNameSpecies):
-    """
-    Generate file name export like in the VB program
-    """
-    filename = "{0}{1}-{2}.xml".format(
-        CountryCode, xmlFileNameSpecies,
-        datetime.datetime.now().strftime("%y%m%d-%H%M%S"))
-    return os.path.join(folderName, filename)
 
 
 def xmlAdditionalAttributeValue(tableName, elementName, record):
@@ -60,6 +50,7 @@ def xmlDescAttributeValue(fieldValue, descRelation):
 
 
 def xmlCalculateField(record, fieldName):
+    logger.debug(fieldName)
     if fieldName == "species_name":
         try:
             return str(
@@ -113,12 +104,13 @@ def getValueFromGeneric(record, item):
 
     return str(value) if value is not None else ""
 
+
 def getSubnode(root, item, record, tableName):
     if item.is_related_table:
         value = getValueFromGeneric(record, item.primary_key_field)
 
         convertLinkTableToXML(
-            root, item.foreign_key_field, value,item.field_name, item.xml_tag,
+            root, item.foreign_key_field, value, item.field_name, item.xml_tag,
             item.xml_tag, item.table_filter)
     else:
         try:
@@ -135,7 +127,6 @@ def getSubnode(root, item, record, tableName):
         el.attrib.update(additionalAttributesValue)
         el.text = fieldValue
         root.append(el)
-
 
 
 def convertRecordToXML(rootNode, record, tableName, tableTagItems):
@@ -159,29 +150,45 @@ def convertRecordToXML(rootNode, record, tableName, tableTagItems):
                 rootNode.append(newRootNode)
             previousTagGroup = item.xml_tag_section
         else:
-            getSubnode(rootNode,item, record, tableName)
+            getSubnode(rootNode, item, record, tableName)
 
 
 if __name__ == "__main__":
     logger.info("Just started !")
 
-    parser = argparse.ArgumentParser(description="export data to xml format")
+    parser = ArgumentParser(description="export data to xml format")
     parser.add_argument("xml_path",
                         help="path to location for saving xml file")
+    parser.add_argument("report", help=("the report type; "
+                                        "choise between species or habitats"),
+                        choices=["species", "habitats"])
+
     args = parser.parse_args()
 
-    try:
-        tableTagItems = getTagItems('data_species')
+    reportAttributes = ReportAttributes(args.report)
 
-        speciesRs = (session.query(DataSpecies).filter(
-            DataSpecies.export == 1, DataSpecies.speciescode =='1188').first(),
-        )
+    try:
+        tableTagItems = getTagItems(reportAttributes.table_name)
+
+        if args.report == "species":
+            mappedData = (session.query(DataSpecies).filter(
+                DataSpecies.export == 1,
+                DataSpecies.speciescode == '1188').first(),
+            )
+        elif args.report == "habitats":
+            mappedData = (session.query(DataHabitats).filter(
+                DataSpecies.export == 1).first(),
+            )
+
+        #speciesRs = engine.execute(
+        #    ("select * from data_species where data_species.export = 1 and  "
+        #     "data_species.speciescode = '1188'"))
 
         NS = 'http://www.w3.org/2001/XMLSchema-instance'
         location_attribute = '{%s}noNameSpaceSchemaLocation' % NS
 
         export_xml = etree.Element(
-            configLoader.xml_root_tag_species,
+            reportAttributes.xml_root_tag,
             attrib={location_attribute: configLoader.xml_schema_species})
         """
         set the language
@@ -189,14 +196,15 @@ if __name__ == "__main__":
         attr = export_xml.attrib
         attr['{http://www.w3.org/XML/1998/namespace}lang'] = "en"
 
-        for specie in speciesRs:
-            specie_tag = etree.Element(configLoader.xml_report_tag_species)
-            xml_nodes = convertRecordToXML(specie_tag, specie,
-                                           "data_species", tableTagItems)
-            export_xml.append(specie_tag)
+        for md in mappedData:
+            root_node = etree.Element(reportAttributes.xml_report_tag)
+            xml_nodes = convertRecordToXML(root_node, md,
+                                           reportAttributes.table_name,
+                                           tableTagItems)
+            export_xml.append(root_node)
 
         fileNameExport = generateFilename(
-            args.xml_path, "RO", "_species_reports")
+            args.xml_path, "RO", "_{0}".format(reportAttributes.xml_root_tag))
         with open(fileNameExport, "w") as xml_file:
             xml_file.write(etree.tostring(export_xml, pretty_print=True,
                                           xml_declaration=True,
