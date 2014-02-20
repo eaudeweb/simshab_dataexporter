@@ -1,12 +1,11 @@
 from lxml import etree
+
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm import sessionmaker
-from argparse import ArgumentParser
 import logging
 import logging.config
 
-from configloader import configLoader
-from reportattributes import ReportAttributes
+from configloader import ConfigLoader
 from simshab_schemes import DataHabitats
 from simshab_schemes import DataSpecies
 from simshab_schemes import LuCountryCode
@@ -14,6 +13,7 @@ from simshab_schemes import ValidateFields
 from simshab_schemes import engine
 from utils import generateFileName
 from utils import getValueFromGeneric
+from xmlgenerator import XMLGenerator
 
 logger = logging.getLogger('ExportXML')
 logging.config.fileConfig('etc/log.conf', disable_existing_loggers=False)
@@ -23,15 +23,22 @@ Session.configure(bind=engine)
 session = Session()
 
 
+def getCountryISOCode(countryCode):
+    try:
+        return session.query(LuCountryCode).filter(
+            LuCountryCode.code == countryCode).first().isocode
+    except Exception as ex:
+        print ex
+        import ipdb; ipdb.set_trace()
+
+
 def xmlAdditionalAttributeValue(tableName, elementName, record):
     if (tableName in ("data_species", "data_greintroduction_of_species")
             and elementName == "speciescode"):
         return {"desc": "", "euniscode": ""}
     elif (tableName in ("data_habitats", "data_species", "data_greport")
             and elementName == "country"):
-        return {"isocode": "{0}".format(
-            session.query(LuCountryCode).filter(
-                LuCountryCode.code == record.country).first().isocode)}
+        return {"isocode": "{0}".format(getCountryISOCode(record.country))}
     return {}
 
 
@@ -143,25 +150,27 @@ def convertRecordToXML(rootNode, record, tableName, tableTagItems):
             getSubnode(rootNode, item, record, tableName)
 
 
-if __name__ == "__main__":
-    logger.info("Just started !")
+def generate_checklist(configLoader):
+    rs = engine.execute(("select * from data_species_check_list where"
+                         " member_state='{0}' order by species_name,"
+                         " bio_region").format(configLoader.country)).first()
 
-    parser = ArgumentParser(description="export data to xml format")
-    parser.add_argument("xml_path",
-                        help="path to location for saving xml file")
-    parser.add_argument("action", help=("action type; choise between"
-                                        "report or export"),
-                        choices=["report", "export"])
-    parser.add_argument("type", help=("the type it applies to action"
-                                      "choise between species or habitats"),
-                        choices=["species", "habitats"])
+    xmlGenerator = XMLGenerator(configLoader.xml_root_tag,
+                                configLoader.xml_schema)
+    node = etree.Element("country")
+    node.attrib.update(
+        {"desc": xmlDescAttributeValue(
+            rs["member_state"], "name from lu_country_code where code="),
+         "isocode": getCountryISOCode(configLoader.country)})
+    xmlGenerator.append(node)
+    return str(xmlGenerator)
 
-    args = parser.parse_args()
 
-    reportAttributes = ReportAttributes(args.type)
-
+def generate_report(configLoader):
+    """Generate XML
+    """
     try:
-        tableTagItems = getTagItems(reportAttributes.table_name)
+        tableTagItems = getTagItems(configLoader.table_name)
 
         if args.type == "species":
             mappedData = (session.query(DataSpecies).filter(
@@ -177,33 +186,56 @@ if __name__ == "__main__":
         #    ("select * from data_species where data_species.export = 1 and  "
         #     "data_species.speciescode = '1188'"))
 
-        NS = 'http://www.w3.org/2001/XMLSchema-instance'
-        location_attribute = '{%s}noNameSpaceSchemaLocation' % NS
-
-        export_xml = etree.Element(
-            reportAttributes.xml_root_tag,
-            attrib={location_attribute: configLoader.xml_schema_species})
-        """
-        set the language
-        """
-        attr = export_xml.attrib
-        attr['{http://www.w3.org/XML/1998/namespace}lang'] = "en"
+        xmlGenerator = XMLGenerator(configLoader.xml_root_tag,
+                                    configLoader.xml_schema)
 
         for md in mappedData:
-            root_node = etree.Element(reportAttributes.xml_report_tag)
-            xml_nodes = convertRecordToXML(root_node, md,
-                                           reportAttributes.table_name,
-                                           tableTagItems)
-            export_xml.append(root_node)
+            root_node = etree.Element(configLoader.xml_report_tag)
+            convertRecordToXML(root_node, md, configLoader.table_name,
+                               tableTagItems)
+            xmlGenerator.append(root_node)
 
-        fileNameExport = generateFileName(
-            args.xml_path, "RO", "_{0}".format(reportAttributes.xml_root_tag))
-        with open(fileNameExport, "w") as xml_file:
-            xml_file.write(etree.tostring(export_xml, pretty_print=True,
-                                          xml_declaration=True,
-                                          encoding='UTF-8'))
-        logger.info("Generated filename: {0} with success".format(
-            fileNameExport))
-
+        return str(xmlGenerator)
     except DatabaseError as ex:
         logger.critical("{0}".format(ex))
+
+
+def zope(self):
+    """ Stuff
+    """
+    args = self.REQUEST.form
+    #return generate_report(args)
+    return args
+
+if __name__ == "__main__":
+    from argparse import ArgumentParser
+
+    logger.info("Just started !")
+
+    parser = ArgumentParser(description="export data to xml format")
+    parser.add_argument("xml_path",
+                        help="path to location for saving xml file")
+    parser.add_argument("action", help=("action type; choise between"
+                                        "report or checklist"),
+                        choices=["report", "checklist"])
+    parser.add_argument("type", help=("the type it applies to action"
+                                      "choise between species or habitats"),
+                        choices=["species", "habitats"])
+
+    args = parser.parse_args()
+    configLoader = ConfigLoader(args.action, args.type)
+
+    fileNameExport = generateFileName(
+        args.xml_path, configLoader.country, "_{0}".format(
+            configLoader.file_name))
+
+    with open(fileNameExport, "w") as xml_file:
+        if args.action == "report":
+            action = generate_report(configLoader)
+        elif args.action == "checklist":
+            action = generate_checklist(configLoader)
+        else:
+            assert False
+        xml_file.write(action)
+
+    logger.info("Generated filename: {0} with success".format(fileNameExport))

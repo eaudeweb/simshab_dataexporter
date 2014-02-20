@@ -4,30 +4,37 @@ import ConfigParser
 class ConfigLoader(object):
     """ Load all configuration from etc/cnf.ini
     """
-    def __init__(self):
+    def __init__(self, action, action_type):
+        """ action_type can be species or habitats
+        """
         self.parser = ConfigParser.SafeConfigParser()
         self.parser.read('etc/cnf.ini')
 
-        self.xml_root_tag_species = self.parser.get("GENERAL",
-                                                    "XML_ROOT_TAG_SPECIES")
-        self.xml_root_tag_habitats = self.parser.get("GENERAL",
-                                                     "XML_ROOT_TAG_HABITATS")
-        self.xml_schema_species = self.parser.get("GENERAL",
-                                                  "XML_SCHEMA_SPECIES")
+        if action == "report":
+            if action_type == "species":
+                section = "SPECIES_REPORT"
+            elif action_type == "habitats":
+                section = "HABITATS_REPORT"
+            else:
+                assert False
+            self.xml_report_tag = self.parser.get(section, "XML_REPORT_TAG")
+            self.table_name = self.parser.get(section, "TABLE_NAME")
+        elif action == "checklist":
+            if action_type == "species":
+                section = "SPECIES_CHECKLIST"
+            elif action_type == "habitats":
+                section = "HABITATS_CHECKLIST"
+            else:
+                assert False
+
+        self.file_name = self.parser.get(section, "XML_FILE_NAME")
+        self.xml_root_tag = self.parser.get(section, "XML_ROOT_TAG")
+        self.xml_schema = self.parser.get(section, "XML_SCHEMA")
+
         self.xml_lang = self.parser.get("GENERAL", "XML_LANG")
-        self.xml_report_tag_species = self.parser.get("GENERAL",
-                                                      "XML_REPORT_TAG_SPECIES")
-        self.xml_report_tag_habitats = self.parser.get(
-            "GENERAL", "XML_REPORT_TAG_HABITATS")
-        self.table_name_species = self.parser.get("GENERAL",
-                                                  "TABLE_NAME_SPECIES")
-        self.table_names_habitats = self.parser.get("GENERAL",
-                                                    "TABLE_NAME_HABITATS")
+        self.country = self.parser.get("GENERAL", "COUNTRY")
 
         self.dialect = self.parser.get("SQLALCHEMY", "dialect")
         self.username = self.parser.get("SQLALCHEMY", "username")
         self.password = self.parser.get("SQLALCHEMY", "password")
         self.hostname = self.parser.get("SQLALCHEMY", "hostname")
-
-
-configLoader = ConfigLoader()
