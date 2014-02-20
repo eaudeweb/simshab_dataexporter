@@ -144,10 +144,11 @@ class LuCountryCode(Base):
                    self.order_
                )
 
+
 class DataHabitats(Base):
     __tablename__ = u"data_habitats"
 
-    id = Column("objectid", Integer, primary_key=True)
+    habitat_id = Column("objectid", Integer, primary_key=True)
 
     country = Column(String)
     habitatcode = Column(String)
@@ -158,7 +159,7 @@ class DataHabitats(Base):
     range_map = Column(Integer)
     sys_date_created = Column(Date)
     sys_date_modified = Column(Date)
-    sys_date_imported  = Column(Date)
+    sys_date_imported = Column(Date)
     sys_creator_id = Column(String)
     sys_modifier_id = Column(String)
     validated = Column(Integer)

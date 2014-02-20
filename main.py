@@ -12,7 +12,8 @@ from simshab_schemes import DataSpecies
 from simshab_schemes import LuCountryCode
 from simshab_schemes import ValidateFields
 from simshab_schemes import engine
-from utils import generateFilename
+from utils import generateFileName
+from utils import getValueFromGeneric
 
 logger = logging.getLogger('ExportXML')
 logging.config.fileConfig('etc/log.conf', disable_existing_loggers=False)
@@ -94,17 +95,6 @@ def convertLinkTableToXML(rootNode, foreign_key, value, table_name,
         rootNode.append(newRootNode)
 
 
-def getValueFromGeneric(record, item):
-    """Always return str
-    """
-    if type(record) is dict:
-        value = record[item]
-    else:
-        value = getattr(record, item)
-
-    return str(value) if value is not None else ""
-
-
 def getSubnode(root, item, record, tableName):
     if item.is_related_table:
         value = getValueFromGeneric(record, item.primary_key_field)
@@ -159,23 +149,26 @@ if __name__ == "__main__":
     parser = ArgumentParser(description="export data to xml format")
     parser.add_argument("xml_path",
                         help="path to location for saving xml file")
-    parser.add_argument("report", help=("the report type; "
-                                        "choise between species or habitats"),
+    parser.add_argument("action", help=("action type; choise between"
+                                        "report or export"),
+                        choices=["report", "export"])
+    parser.add_argument("type", help=("the type it applies to action"
+                                      "choise between species or habitats"),
                         choices=["species", "habitats"])
 
     args = parser.parse_args()
 
-    reportAttributes = ReportAttributes(args.report)
+    reportAttributes = ReportAttributes(args.type)
 
     try:
         tableTagItems = getTagItems(reportAttributes.table_name)
 
-        if args.report == "species":
+        if args.type == "species":
             mappedData = (session.query(DataSpecies).filter(
                 DataSpecies.export == 1,
                 DataSpecies.speciescode == '1188').first(),
             )
-        elif args.report == "habitats":
+        elif args.type == "habitats":
             mappedData = (session.query(DataHabitats).filter(
                 DataSpecies.export == 1).first(),
             )
@@ -203,7 +196,7 @@ if __name__ == "__main__":
                                            tableTagItems)
             export_xml.append(root_node)
 
-        fileNameExport = generateFilename(
+        fileNameExport = generateFileName(
             args.xml_path, "RO", "_{0}".format(reportAttributes.xml_root_tag))
         with open(fileNameExport, "w") as xml_file:
             xml_file.write(etree.tostring(export_xml, pretty_print=True,
