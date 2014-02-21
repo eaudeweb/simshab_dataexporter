@@ -2,7 +2,7 @@ import os.path
 import datetime
 
 
-def generateFileName(folderName, CountryCode, xmlFileNameSpecies):
+def generate_file_name(folderName, CountryCode, xmlFileNameSpecies):
     """
     Generate file name export like in the VB program
     """

@@ -11,9 +11,11 @@ from simshab_schemes import DataSpecies
 from simshab_schemes import LuCountryCode
 from simshab_schemes import ValidateFields
 from simshab_schemes import engine
-from utils import generateFileName
+from utils import generate_file_name
 from utils import getValueFromGeneric
 from xmlgenerator import XMLGenerator
+from xmlgenerator import generateNewNode
+from xmlgenerator import ChecklistGenerator
 
 logger = logging.getLogger('ExportXML')
 logging.config.fileConfig('etc/log.conf', disable_existing_loggers=False)
@@ -29,7 +31,7 @@ def getCountryISOCode(countryCode):
             LuCountryCode.code == countryCode).first().isocode
     except Exception as ex:
         print ex
-        import ipdb; ipdb.set_trace()
+        raise ex
 
 
 def xmlAdditionalAttributeValue(tableName, elementName, record):
@@ -93,13 +95,9 @@ def convertLinkTableToXML(rootNode, foreign_key, value, table_name,
             table_name, foreign_key, value))
 
     for related_value in related_values:
-        newRootNode = etree.Element(groupElementName)
-
-        tableTagItems = getTagItems(table_name)
-
+        newRootNode = generateNewNode(rootNode, groupElementName)
         convertRecordToXML(newRootNode, dict(related_value),
-                           table_name, tableTagItems)
-        rootNode.append(newRootNode)
+                           table_name, getTagItems(table_name))
 
 
 def getSubnode(root, item, record, tableName):
@@ -150,22 +148,6 @@ def convertRecordToXML(rootNode, record, tableName, tableTagItems):
             getSubnode(rootNode, item, record, tableName)
 
 
-def generate_checklist(configLoader):
-    rs = engine.execute(("select * from data_species_check_list where"
-                         " member_state='{0}' order by species_name,"
-                         " bio_region").format(configLoader.country)).first()
-
-    xmlGenerator = XMLGenerator(configLoader.xml_root_tag,
-                                configLoader.xml_schema)
-    node = etree.Element("country")
-    node.attrib.update(
-        {"desc": xmlDescAttributeValue(
-            rs["member_state"], "name from lu_country_code where code="),
-         "isocode": getCountryISOCode(configLoader.country)})
-    xmlGenerator.append(node)
-    return str(xmlGenerator)
-
-
 def generate_report(configLoader):
     """Generate XML
     """
@@ -190,7 +172,7 @@ def generate_report(configLoader):
                                     configLoader.xml_schema)
 
         for md in mappedData:
-            root_node = etree.Element(configLoader.xml_report_tag)
+            root_node = generateNewNode(None, configLoader.xml_report_tag)
             convertRecordToXML(root_node, md, configLoader.table_name,
                                tableTagItems)
             xmlGenerator.append(root_node)
@@ -225,7 +207,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     configLoader = ConfigLoader(args.action, args.type)
 
-    fileNameExport = generateFileName(
+    fileNameExport = generate_file_name(
         args.xml_path, configLoader.country, "_{0}".format(
             configLoader.file_name))
 
@@ -233,9 +215,11 @@ if __name__ == "__main__":
         if args.action == "report":
             action = generate_report(configLoader)
         elif args.action == "checklist":
-            action = generate_checklist(configLoader)
+            action = ChecklistGenerator(configLoader)
         else:
             assert False
-        xml_file.write(action)
+        xml_string = action()
+        xml_file.write(xml_string)
 
     logger.info("Generated filename: {0} with success".format(fileNameExport))
+    logger.debug(xml_string)
