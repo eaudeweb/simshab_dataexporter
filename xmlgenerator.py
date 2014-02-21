@@ -63,7 +63,7 @@ class XMLGenerator(object):
 
 
 class ChecklistGenerator(XMLGenerator):
-    """Callable class know how to generate check list xml.
+    """Callable class. It knows how to generate check list xml.
     """
     def __init__(self, configLoader):
         super(ChecklistGenerator, self).__init__(configLoader.xml_root_tag,
