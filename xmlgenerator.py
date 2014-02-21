@@ -3,6 +3,12 @@ from simshab_schemes import engine
 
 
 def generateNewNode(root, node_name, node_text=None, attrib={}):
+    """
+    root: the parent node. Can be None
+    node_name: the name of the node
+    node_text: the text of the node. Can be None.
+    attrib: node's attrib. Can be None
+    """
     new_node = etree.Element(node_name)
     if node_text is not None:
         new_node.text = str(node_text)
@@ -57,7 +63,7 @@ class XMLGenerator(object):
 
 
 class ChecklistGenerator(XMLGenerator):
-    """Generate check list xml.
+    """Callable class know how to generate check list xml.
     """
     def __init__(self, configLoader):
         super(ChecklistGenerator, self).__init__(configLoader.xml_root_tag,
@@ -93,14 +99,24 @@ class ChecklistGenerator(XMLGenerator):
                 generateNewNode(species_node, "name", rs_line["species_name"])
                 generateNewNode(species_node, "hd_name", rs_line["hd_name"])
                 regional_node = generateNewNode(species_node, "regional")
+
                 previous_species_code = rs_line["natura_2000_code"]
 
             region_node = generateNewNode(regional_node, "region")
-            generateNewNode(region_node, "code", rs_line["bio_region"])
-            generateNewNode(region_node, "presence", rs_line["presence"])
+            generateNewNode(region_node, "code", rs_line["bio_region"],
+                            {"desc": xmlDescAttributeValue(
+                                rs_line["bio_region"],
+                                "name from lu_biogeoreg where code=")}
+                            )
+            generateNewNode(region_node, "presence", rs_line["presence"],
+                            {"desc": xmlDescAttributeValue(
+                                rs_line["presence"],
+                                "name from lu_presence where code=")})
             generateNewNode(region_node, "comments", rs_line["comment_"])
             generateNewNode(region_node, "annex_ii", rs_line["annex_ii"])
-            generateNewNode(region_node, "ms_added", rs_line["ms_added"])
-            generateNewNode(region_node, "predefined", rs_line["predefined"])
+            generateNewNode(region_node, "ms_added",
+                            "true" if rs_line["ms_added"] else "false")
+            generateNewNode(region_node, "predefined",
+                            "true" if rs_line["predefined"] else "false")
 
         return self.__str__()
