@@ -124,27 +124,6 @@ class LuRanking(Base):
                )
 
 
-class LuCountryCode(Base):
-    __tablename__ = u'lu_country_code'
-
-    id = Column("objectid", Integer, primary_key=True)
-    isocode = Column(String)
-    code = Column(String)
-    name = Column(String)
-    order_ = Column(Integer)
-
-    def __repr__(self):
-        return "<LuCountryCode(id: {0}, isocode: {1}, code: {2}, "\
-               "name: {3}, order_: {4}"\
-               "".format(
-                   self.id,
-                   self.isocode,
-                   self.code,
-                   self.name,
-                   self.order_
-               )
-
-
 class DataHabitats(Base):
     __tablename__ = u"data_habitats"
 

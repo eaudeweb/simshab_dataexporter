@@ -8,14 +8,15 @@ import logging.config
 from configloader import ConfigLoader
 from simshab_schemes import DataHabitats
 from simshab_schemes import DataSpecies
-from simshab_schemes import LuCountryCode
 from simshab_schemes import ValidateFields
 from simshab_schemes import engine
 from utils import generate_file_name
 from utils import getValueFromGeneric
+from xmlgenerator import ChecklistGenerator
 from xmlgenerator import XMLGenerator
 from xmlgenerator import generateNewNode
-from xmlgenerator import ChecklistGenerator
+from xmlgenerator import getCountryISOCode
+from xmlgenerator import xmlDescAttributeValue
 
 logger = logging.getLogger('ExportXML')
 logging.config.fileConfig('etc/log.conf', disable_existing_loggers=False)
@@ -23,15 +24,6 @@ logging.config.fileConfig('etc/log.conf', disable_existing_loggers=False)
 Session = sessionmaker(bind=engine)
 Session.configure(bind=engine)
 session = Session()
-
-
-def getCountryISOCode(countryCode):
-    try:
-        return session.query(LuCountryCode).filter(
-            LuCountryCode.code == countryCode).first().isocode
-    except Exception as ex:
-        print ex
-        raise ex
 
 
 def xmlAdditionalAttributeValue(tableName, elementName, record):
@@ -42,21 +34,6 @@ def xmlAdditionalAttributeValue(tableName, elementName, record):
             and elementName == "country"):
         return {"isocode": "{0}".format(getCountryISOCode(record.country))}
     return {}
-
-
-def xmlDescAttributeValue(fieldValue, descRelation):
-    if descRelation is None:
-        return ""
-    try:
-        return str(engine.execute(
-            "SELECT {0}'{1}'".format(descRelation, fieldValue)).first()[0])
-    except TypeError as ex:
-        if "'NoneType' object has no attribute" in ex.message:
-            """
-            Is happend when select has no records. Should return ""
-            """
-            return ""
-        raise ex
 
 
 def xmlCalculateField(record, fieldName):
