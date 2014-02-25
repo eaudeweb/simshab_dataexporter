@@ -18,7 +18,6 @@ class ConfigLoader(object):
             else:
                 assert False
             self.xml_report_tag = self.parser.get(section, "XML_REPORT_TAG")
-            self.table_name = self.parser.get(section, "TABLE_NAME")
         elif action == "checklist":
             if action_type == "species":
                 section = "SPECIES_CHECKLIST"
@@ -30,6 +29,7 @@ class ConfigLoader(object):
         self.file_name = self.parser.get(section, "XML_FILE_NAME")
         self.xml_root_tag = self.parser.get(section, "XML_ROOT_TAG")
         self.xml_schema = self.parser.get(section, "XML_SCHEMA")
+        self.table_name = self.parser.get(section, "TABLE_NAME")
 
         self.xml_lang = self.parser.get("GENERAL", "XML_LANG")
         self.country = self.parser.get("GENERAL", "COUNTRY")

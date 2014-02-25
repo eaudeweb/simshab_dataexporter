@@ -43,7 +43,7 @@ if __name__ == "__main__":
         if args.action == "report":
             action = ReportGenerator(args.type, configLoader)
         elif args.action == "checklist":
-            action = ChecklistGenerator(configLoader)
+            action = ChecklistGenerator(args.type, configLoader)
         else:
             assert False
         xml_string = action()
