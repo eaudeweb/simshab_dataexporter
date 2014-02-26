@@ -4,8 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 
 Base = declarative_base()
-engine = create_engine(
-    'oracle+cx_oracle://reportdata_owner:simshab@power.edw.ro')
+engine = create_engine('')
 
 
 class ValidateFields(Base):
