@@ -1,5 +1,5 @@
 from lxml import etree
-from simshab_schemes import engine
+from sims.simshab_schemes import engine
 
 
 def generateNewNode(root, node_name, node_text=None, attrib={}):

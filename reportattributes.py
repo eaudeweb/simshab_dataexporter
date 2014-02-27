@@ -1,4 +1,4 @@
-from configloader import configLoader
+from sims.configloader import configLoader
 
 
 class ReportAttributes(object):

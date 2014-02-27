@@ -1,19 +1,20 @@
 from sqlalchemy.orm import sessionmaker
-from simshab_schemes import ValidateFields
-from simshab_schemes import DataSpecies
-from simshab_schemes import DataHabitats
-from sqlalchemy.exc import DatabaseError
-from utils import getValueFromGeneric
-from xmlgenerator import XMLGenerator
-from xmlgenerator import getCountryISOCode
-from xmlgenerator import generateNewNode
-from xmlgenerator import xmlDescAttributeValue
-from simshab_schemes import engine
-import logging
 from lxml import etree
 
+from sims.simshab_schemes import ValidateFields
+from sims.simshab_schemes import DataSpecies
+from sims.simshab_schemes import DataHabitats
+from sqlalchemy.exc import DatabaseError
+from sims.utils import getValueFromGeneric
+from sims.xmlgenerator import XMLGenerator
+from sims.xmlgenerator import getCountryISOCode
+from sims.xmlgenerator import generateNewNode
+from sims.xmlgenerator import xmlDescAttributeValue
+from sims.simshab_schemes import engine
+#import logging
 
-logger = logging.getLogger('xmlgenerator')
+
+#logger = logging.getLogger('xmlgenerator')
 
 
 class ReportGenerator(XMLGenerator):
@@ -58,7 +59,7 @@ class ReportGenerator(XMLGenerator):
                                     table_name, self.getTagItems(table_name))
 
     def xmlCalculateField(self, record, fieldName):
-        logger.debug(fieldName)
+        #logger.debug(fieldName)
         if fieldName == "species_name":
             try:
                 return str(
@@ -151,4 +152,5 @@ class ReportGenerator(XMLGenerator):
 
             return self.__str__()
         except DatabaseError as ex:
-            logger.critical("{0}".format(ex))
+            pass
+            #logger.critical("{0}".format(ex))

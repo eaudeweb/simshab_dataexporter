@@ -1,4 +1,5 @@
 import ConfigParser
+import os
 
 
 class ConfigLoader(object):
@@ -8,7 +9,8 @@ class ConfigLoader(object):
         """ action_type can be species or habitats
         """
         self.parser = ConfigParser.SafeConfigParser()
-        self.parser.read('etc/cnf.ini')
+        cfg = os.environ.get("SIMS_CONF", 'etc/cnf.ini')
+        self.parser.read(cfg)
 
         if action == "report":
             if action_type == "species":
