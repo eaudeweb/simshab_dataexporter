@@ -1,11 +1,7 @@
-
-from sims.configloader import ConfigLoader
-from sims.utils import generate_file_name
 from sims.checklistgenerator import ChecklistGenerator
+from sims.configloader import ConfigLoader
 from sims.reportgenerator import ReportGenerator
-
-#logger = logging.getLogger('ExportXML')
-#logging.config.fileConfig('etc/log.conf', disable_existing_loggers=False)
+from sims.utils import generate_file_name
 
 
 def zope(self):
@@ -13,11 +9,13 @@ def zope(self):
     """
     import os
     args_form = self.REQUEST.form
-    class tmp(object):
+
+    class RequestFormToArgs(object):
         def __init__(self, args_form):
-            self.action = args_form['action'] 
+            self.action = args_form['action']
             self.type = args_form['type']
-    args = tmp(args_form)
+
+    args = RequestFormToArgs(args_form)
     configLoader = ConfigLoader(args.action, args.type)
     file_name = os.environ.get("SIMS_OUT_PATH", '/var/local/cdr/var/sims_out')
     fileNameExport = generate_file_name(
@@ -39,6 +37,9 @@ if __name__ == "__main__":
     from argparse import ArgumentParser
     import logging
     import logging.config
+
+    logger = logging.getLogger('ExportXML')
+    logging.config.fileConfig('etc/log.conf', disable_existing_loggers=False)
 
     logger.info("Just started !")
 
