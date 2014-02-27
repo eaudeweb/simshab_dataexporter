@@ -1,8 +1,8 @@
-from sims.xmlgenerator import XMLGenerator
 from sims.simshab_schemes import engine
+from sims.xmlgenerator import XMLGenerator
 from sims.xmlgenerator import generateNewNode
-from sims.xmlgenerator import xmlDescAttributeValue
 from sims.xmlgenerator import getCountryISOCode
+from sims.xmlgenerator import xmlDescAttributeValue
 
 
 class ChecklistGenerator(XMLGenerator):

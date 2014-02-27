@@ -1,11 +1,11 @@
 from sqlalchemy import Column, Integer, String, Date
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-import os
+from os import environ
 
 
 Base = declarative_base()
-sql_alchemy = os.environ.get("SQLALCHEMY")
+sql_alchemy = environ.get("SQLALCHEMY")
 engine = create_engine(sql_alchemy)
 
 
