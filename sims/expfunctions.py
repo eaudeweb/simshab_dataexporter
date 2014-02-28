@@ -1,7 +1,8 @@
+from os import environ
 import logging
 import logging.config
 
-from utils import make_report
+from make_report import make_report
 
 logger = logging.getLogger('ExportXML')
 
@@ -9,7 +10,6 @@ logger = logging.getLogger('ExportXML')
 def zope(self):
     """ Call this function from ZOPE
     """
-    from os import environ
     args_form = self.REQUEST.form
 
     logger.info("Just started from ZOPE!")
@@ -34,8 +34,6 @@ def command_line():
     logger.info("Just started from command line!")
 
     parser = ArgumentParser(description="export data to xml format")
-    parser.add_argument("xml_path",
-                        help="path to location for saving xml file")
     parser.add_argument("action", help=("action type; choise between"
                                         "report or checklist"),
                         choices=["report", "checklist"])
@@ -43,4 +41,5 @@ def command_line():
                                       "choise between species or habitats"),
                         choices=["species", "habitats"])
     args = parser.parse_args()
+    args.xml_path = environ.get("SIMS_OUT_PATH")
     make_report(args)

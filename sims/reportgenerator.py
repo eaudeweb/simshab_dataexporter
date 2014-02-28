@@ -2,15 +2,15 @@ from lxml import etree
 from sqlalchemy.orm import sessionmaker
 import logging
 
-from sims.simshab_schemes import DataHabitats
-from sims.simshab_schemes import DataSpecies
-from sims.simshab_schemes import ValidateFields
-from sims.simshab_schemes import engine
-from sims.utils import getValueFromGeneric
-from sims.xmlgenerator import XMLGenerator
-from sims.xmlgenerator import generateNewNode
-from sims.xmlgenerator import getCountryISOCode
-from sims.xmlgenerator import xmlDescAttributeValue
+from simshab_schemes import DataHabitats
+from simshab_schemes import DataSpecies
+from simshab_schemes import ValidateFields
+from simshab_schemes import engine
+from utils import getValueFromGeneric
+from xmlgenerator import XMLGenerator
+from xmlgenerator import generateNewNode
+from xmlgenerator import getCountryISOCode
+from xmlgenerator import xmlDescAttributeValue
 from sqlalchemy.exc import DatabaseError
 
 

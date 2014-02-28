@@ -1,8 +1,8 @@
-from sims.simshab_schemes import engine
-from sims.xmlgenerator import XMLGenerator
-from sims.xmlgenerator import generateNewNode
-from sims.xmlgenerator import getCountryISOCode
-from sims.xmlgenerator import xmlDescAttributeValue
+from simshab_schemes import engine
+from xmlgenerator import XMLGenerator
+from xmlgenerator import generateNewNode
+from xmlgenerator import getCountryISOCode
+from xmlgenerator import xmlDescAttributeValue
 
 
 class ChecklistGenerator(XMLGenerator):
@@ -13,19 +13,19 @@ class ChecklistGenerator(XMLGenerator):
                                                  configLoader.xml_schema)
         self.country = configLoader.country
         self.table_name = configLoader.table_name
-        self.report_type =  report_type
+        self.report_type = report_type
 
     def __call__(self):
         if self.report_type == "species":
             rs = engine.execute(("select * from {0} where"
                                 " member_state='{1}' order by species_name,"
                                 " bio_region").format(self.table_name,
-                                                    self.country))
+                                                      self.country))
         elif self.report_type == "habitats":
             rs = engine.execute(("select * from {0} where"
                                 " ms='{1}' order by natura_2000_code,"
                                 " bio_region").format(self.table_name,
-                                                    self.country))
+                                                      self.country))
         rs_lines = [dict(rs_line) for rs_line in rs]
 
         if self.report_type == "species":
@@ -34,19 +34,19 @@ class ChecklistGenerator(XMLGenerator):
                 {"desc": xmlDescAttributeValue(
                     rs_lines[0]["member_state"],
                     "name from lu_country_code where code="),
-                "isocode": getCountryISOCode(self.country)})
+                    "isocode": getCountryISOCode(self.country)})
         elif self.report_type == "habitats":
             country_node = generateNewNode(
                 None, "country", self.country,
                 {"desc": xmlDescAttributeValue(
                     rs_lines[0]["ms"],
                     "name from lu_country_code where code="),
-                "isocode": getCountryISOCode(self.country)})
+                    "isocode": getCountryISOCode(self.country)})
 
         self.export_xml.append(country_node)
 
         list_node = generateNewNode(
-            None, "species_list" if self.report_type == "species"\
+            None, "species_list" if self.report_type == "species"
             else "habitats")
         self.export_xml.append(list_node)
 
@@ -60,8 +60,10 @@ class ChecklistGenerator(XMLGenerator):
                                     rs_line["natura_2000_code"])
                     generateNewNode(species_node, "eunis_code",
                                     rs_line["eunis_code"])
-                    generateNewNode(species_node, "name", rs_line["species_name"])
-                    generateNewNode(species_node, "hd_name", rs_line["hd_name"])
+                    generateNewNode(species_node, "name",
+                                    rs_line["species_name"])
+                    generateNewNode(species_node, "hd_name",
+                                    rs_line["hd_name"])
                     regional_node = generateNewNode(species_node, "regional")
                 elif self.report_type == "habitats":
                     habitats_node = generateNewNode(list_node, "habitat")
@@ -86,7 +88,7 @@ class ChecklistGenerator(XMLGenerator):
                                 rs_line["presence"],
                                 "name from lu_presence where code=")})
             generateNewNode(region_node, "comments", rs_line[
-                "comment_" if self.report_type == "species" \
+                "comment_" if self.report_type == "species"
                 else "ms_feedback_etcbd_comments"])
             if self.report_type == "species":
                 generateNewNode(region_node, "annex_ii", rs_line["annex_ii"])
