@@ -1,0 +1,7 @@
+global-exclude *pyc
+global-exclude *~
+global-exclude *.un~
+global-exclude *.swp
+global-include etc/*
+global-exclude etc/*.swp
+global-include log/*
