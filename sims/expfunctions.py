@@ -22,8 +22,7 @@ def zope(self):
                 "SIMS_OUT_PATH", '/var/local/cdr/var/sims_out')
 
     args = RequestFormToArgs(args_form)
-    make_report(args)
-    return "Generate with success {0}".format(args.action.xml_path)
+    return make_report(args)
 
 
 def command_line():
@@ -42,4 +41,4 @@ def command_line():
                         choices=["species", "habitats"])
     args = parser.parse_args()
     args.xml_path = environ.get("SIMS_OUT_PATH")
-    make_report(args)
+    return make_report(args)
