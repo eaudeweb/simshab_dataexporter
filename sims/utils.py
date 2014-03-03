@@ -20,4 +20,4 @@ def getValueFromGeneric(record, item):
     else:
         value = getattr(record, item)
 
-    return str(value) if value is not None else ""
+    return unicode(value) if value is not None else ""
