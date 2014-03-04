@@ -97,7 +97,10 @@ class ReportGenerator(XMLGenerator):
             descValue = xmlDescAttributeValue(fieldValue,
                                               item.xml_desc_relation)
 
-            el = etree.Element(item.field_name, desc=descValue)
+            if descValue:
+                el = etree.Element(item.xml_tag, desc=descValue)
+            else:
+                el = etree.Element(item.xml_tag)
             el.attrib.update(additionalAttributesValue)
             el.text = fieldValue
             root.append(el)
@@ -124,6 +127,7 @@ class ReportGenerator(XMLGenerator):
                 previousTagGroup = item.xml_tag_section
             else:
                 self.getSubnode(rootNode, item, record, tableName)
+                previousTagGroup = item.xml_tag_section
 
     def __call__(self):
         try:
