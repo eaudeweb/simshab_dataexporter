@@ -1,0 +1,36 @@
+[SPECIES_REPORT]
+XML_ROOT_TAG = species_reports
+XML_SCHEMA = http://bd.eionet.europa.eu/schemas/Art12Art17_reporting_2013/art17_species.xsd
+XML_REPORT_TAG = species_report
+TABLE_NAME = data_species
+XML_FILE_NAME = species_reports
+
+[HABITATS_REPORT]
+XML_ROOT_TAG = habitats_reports
+XML_SCHEMA = http://bd.eionet.europa.eu/schemas/Art12Art17_reporting_2013/art17_habitats.xsd
+XML_REPORT_TAG = habitats_report
+TABLE_NAME = data_habitats
+XML_FILE_NAME = habitats_reports
+
+[SPECIES_CHECKLIST]
+XML_FILE_NAME = species_checklist
+XML_ROOT_TAG = member_state_checklist
+XML_SCHEMA =  http://bd.eionet.europa.eu/schemas/Art12Art17_reporting_2013/art17_species_checklist.xsd
+TABLE_NAME = data_species_check_list
+
+[HABITATS_CHECKLIST]
+XML_FILE_NAME = habitats_checklist
+XML_ROOT_TAG = member_state_checklist
+XML_SCHEMA =  http://bd.eionet.europa.eu/schemas/Art12Art17_reporting_2013/art17_habitats_checklist.xsd
+TABLE_NAME = data_habitats_check_list
+
+[GENERAL]
+XML_LANG = en
+COUNTRY = RO
+
+[SQLALCHEMY]
+dialect = "oracle+cx_oracle"
+username = ""
+password = ""
+hostname = ""
+database = ""
