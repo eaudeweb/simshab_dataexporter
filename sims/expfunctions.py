@@ -30,7 +30,7 @@ def command_line():
 
     logging.config.fileConfig('etc/log.conf', disable_existing_loggers=False)
 
-    logger.info("Just started from command line!")
+#    logger.info("Just started from command line!")
 
     parser = ArgumentParser(description="export data to xml format")
     parser.add_argument("action", help=("action type; choise between"

@@ -20,4 +20,4 @@ def make_report(args):
     xml_string = action()
     return xml_string
 
-    logger.info("Generated filename: {0} with success".format(fileNameExport))
+    #logger.info("Generated filename: {0} with success".format(fileNameExport))

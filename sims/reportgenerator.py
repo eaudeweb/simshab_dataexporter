@@ -49,10 +49,13 @@ class ReportGenerator(XMLGenerator):
 
     def convertLinkTableToXML(self, rootNode, foreign_key, value, table_name,
                               groupElementName, elementName, tableType):
-        related_values = engine.execute(
-            "select * from {0} where {1}={2}".format(
-                table_name, foreign_key, value))
-
+        if table_name == 'data_species_regions':
+            extra = ' AND cons_dataset_id=1'
+        else:
+            extra = ''
+        query ="select * from {0} where {1}={2} {3}".format(
+                table_name, foreign_key, value, extra)
+        related_values = engine.execute(query)
         for related_value in related_values:
             newRootNode = generateNewNode(rootNode, groupElementName)
             self.convertRecordToXML(newRootNode, dict(related_value),
@@ -114,9 +117,7 @@ class ReportGenerator(XMLGenerator):
         """
         previousTagGroup = None
 
-        for idx in range(len(tableTagItems)):
-            item = tableTagItems[idx]
-
+        for idx, item in enumerate(tableTagItems):
             if item.xml_tag_section != previousTagGroup:
                 if previousTagGroup is not None:
                     return
