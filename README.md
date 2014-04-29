@@ -25,8 +25,7 @@ Run the exporter locally
 
 Activate virtualenv, then:
 
-    cd sims
-    python ../tools/cli.py -h
+    python cli.py -h
 
 Available commands are:
 
