@@ -7,6 +7,7 @@
 
 # Config files
 etc
+output
 
 # log files
 logs
@@ -51,4 +52,4 @@ tmp/*
 
 # virtualenv
 venv/*
-
+cnf.ini
