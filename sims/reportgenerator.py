@@ -135,19 +135,11 @@ class ReportGenerator(XMLGenerator):
             tableTagItems = self.getTagItems(self.table_name)
 
             if self.report_type == "species":
-                mappedData = (self.session.query(DataSpecies).filter(
-                    DataSpecies.export == 1,
-                    DataSpecies.speciescode == '1188').first(),
-                )
-            elif self.report_type == "habitats":
-                mappedData = (self.session.query(DataHabitats).filter(
-                    DataSpecies.export == 1).first(),
-                )
+                mappedData = self.session.query(DataSpecies).filter(
+                    DataSpecies.speciescode == '1251').all()
 
-            #speciesRs = engine.execute(
-            #    ("select * from data_species where data_species.export = 1
-            #and  "
-            #     "data_species.speciescode = '1188'"))
+            elif self.report_type == "habitats":
+                mappedData = self.session.query(DataHabitats).all()
 
             for md in mappedData:
                 root_node = generateNewNode(None, self.xml_report_tag)
